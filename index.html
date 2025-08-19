@@ -31,8 +31,9 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // Configuration
-        const WEATHER_API_KEY = 'AIzaSyB1fJkw2tbgd56D8oSBdK9DDy-jxLvym6o';
+        // Configuration APIs
+        const GOOGLE_MAPS_API_KEY = 'AIzaSyB1fJkw2tbgd56D8oSBdK9DDy-jxLvym6o';
+        const WEATHER_API_KEY = 'VOTRE_CLE_API_OPENWEATHERMAP';
         
         // Icônes
         const Phone = ({ size = 24 }) => (
@@ -141,6 +142,7 @@
             const [weather, setWeather] = useState(null);
             const [selectedCity, setSelectedCity] = useState('Paris');
             const [flashlightOn, setFlashlightOn] = useState(false);
+            const [flashlightStream, setFlashlightStream] = useState(null);
             const [timerMinutes, setTimerMinutes] = useState(0);
             const [timerSeconds, setTimerSeconds] = useState(0);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -222,36 +224,54 @@
 
             const fetchWeather = async () => {
                 try {
-                    if (WEATHER_API_KEY !== 'VOTRE_CLE_API_OPENWEATHERMAP') {
-                        const response = await fetch(
-                            `https://api.openweathermap.org/data/2.5/weather?q=${selectedCity}&appid=${WEATHER_API_KEY}&units=metric&lang=fr`
+                    // Utiliser Google Maps Geocoding + OpenWeatherMap pour plus de précision
+                    if (GOOGLE_MAPS_API_KEY !== 'VOTRE_CLE_GOOGLE_MAPS_API' && WEATHER_API_KEY !== 'VOTRE_CLE_API_OPENWEATHERMAP') {
+                        // 1. Obtenir les coordonnées avec Google Maps
+                        const geocodeResponse = await fetch(
+                            `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(selectedCity)}&key=${GOOGLE_MAPS_API_KEY}`
                         );
-                        const data = await response.json();
+                        const geocodeData = await geocodeResponse.json();
                         
-                        setWeather({
-                            location: data.name,
-                            temperature: Math.round(data.main.temp),
-                            condition: data.weather[0].description,
-                            humidity: data.main.humidity,
-                            wind: Math.round(data.wind.speed * 3.6)
-                        });
+                        if (geocodeData.results && geocodeData.results.length > 0) {
+                            const location = geocodeData.results[0].geometry.location;
+                            
+                            // 2. Obtenir la météo avec les coordonnées précises
+                            const weatherResponse = await fetch(
+                                `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&appid=${WEATHER_API_KEY}&units=metric&lang=fr`
+                            );
+                            const weatherData = await weatherResponse.json();
+                            
+                            setWeather({
+                                location: geocodeData.results[0].formatted_address.split(',')[0],
+                                temperature: Math.round(weatherData.main.temp),
+                                condition: weatherData.weather[0].description,
+                                humidity: weatherData.main.humidity,
+                                wind: Math.round(weatherData.wind.speed * 3.6),
+                                coordinates: location
+                            });
+                        } else {
+                            throw new Error('Ville non trouvée');
+                        }
                     } else {
-                        // Simulation
+                        // Simulation pour la démo
                         setWeather({
                             location: selectedCity,
                             temperature: 22,
                             condition: 'Ensoleillé',
                             humidity: 65,
-                            wind: 12
+                            wind: 12,
+                            coordinates: { lat: 48.8566, lng: 2.3522 }
                         });
                     }
                 } catch (error) {
+                    console.error('Erreur météo:', error);
                     setWeather({
                         location: selectedCity,
                         temperature: '--',
                         condition: 'Données indisponibles',
                         humidity: '--',
-                        wind: '--'
+                        wind: '--',
+                        coordinates: { lat: 48.8566, lng: 2.3522 }
                     });
                 }
             };
@@ -345,27 +365,166 @@
             };
 
             // Autres fonctions
-            const toggleFlashlight = () => {
-                if (!flashlightOn) {
-                    document.body.style.backgroundColor = '#FFFFFF';
-                    setFlashlightOn(true);
-                } else {
-                    document.body.style.backgroundColor = '';
-                    setFlashlightOn(false);
+            // Lampe torche avec vraie caméra
+            const toggleFlashlight = async () => {
+                try {
+                    if (!flashlightOn) {
+                        // Essayer d'accéder à la caméra arrière avec flash
+                        const stream = await navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'environment',
+                                torch: true
+                            }
+                        });
+                        
+                        // Créer un élément vidéo caché pour maintenir le stream
+                        const video = document.createElement('video');
+                        video.style.display = 'none';
+                        video.srcObject = stream;
+                        video.play();
+                        document.body.appendChild(video);
+                        
+                        // Activer le flash si disponible
+                        const track = stream.getVideoTracks()[0];
+                        if (track.getCapabilities && track.getCapabilities().torch) {
+                            await track.applyConstraints({
+                                advanced: [{ torch: true }]
+                            });
+                        }
+                        
+                        setFlashlightStream(stream);
+                        setFlashlightOn(true);
+                        
+                        // Fallback visuel
+                        document.body.style.backgroundColor = '#FFFFFF';
+                        document.body.style.filter = 'brightness(1.5)';
+                        
+                    } else {
+                        // Éteindre la lampe
+                        if (flashlightStream) {
+                            const tracks = flashlightStream.getTracks();
+                            tracks.forEach(track => {
+                                if (track.getCapabilities && track.getCapabilities().torch) {
+                                    track.applyConstraints({
+                                        advanced: [{ torch: false }]
+                                    });
+                                }
+                                track.stop();
+                            });
+                            
+                            // Supprimer l'élément vidéo
+                            const videos = document.querySelectorAll('video[style*="display: none"]');
+                            videos.forEach(video => video.remove());
+                            
+                            setFlashlightStream(null);
+                        }
+                        
+                        setFlashlightOn(false);
+                        document.body.style.backgroundColor = '';
+                        document.body.style.filter = '';
+                    }
+                } catch (error) {
+                    // Fallback en cas d'erreur
+                    console.log('Flash non disponible, utilisation du fallback visuel');
+                    if (!flashlightOn) {
+                        document.body.style.backgroundColor = '#FFFFFF';
+                        document.body.style.filter = 'brightness(2)';
+                        setFlashlightOn(true);
+                    } else {
+                        document.body.style.backgroundColor = '';
+                        document.body.style.filter = '';
+                        setFlashlightOn(false);
+                    }
                 }
             };
 
+            // Géolocalisation avec carte et partage
             const getLocation = () => {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
-                        (position) => {
+                        async (position) => {
                             const { latitude, longitude } = position.coords;
-                            alert(`Position: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
+                            
+                            try {
+                                let address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+                                
+                                // Obtenir l'adresse avec Google Maps si API disponible
+                                if (GOOGLE_MAPS_API_KEY !== 'VOTRE_CLE_GOOGLE_MAPS_API') {
+                                    const response = await fetch(
+                                        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}&language=fr`
+                                    );
+                                    const data = await response.json();
+                                    
+                                    if (data.results && data.results.length > 0) {
+                                        address = data.results[0].formatted_address;
+                                    }
+                                }
+                                
+                                // Créer l'URL Google Maps
+                                const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                                const mapsLink = `https://maps.google.com/?q=${latitude},${longitude}&ll=${latitude},${longitude}&z=16`;
+                                
+                                // Afficher les options
+                                const action = confirm(
+                                    `📍 Vous êtes ici :\n${address}\n\n` +
+                                    `Coordonnées : ${latitude.toFixed(6)}, ${longitude.toFixed(6)}\n\n` +
+                                    `Appuyez sur OK pour voir la carte\n` +
+                                    `Appuyez sur Annuler pour partager votre position`
+                                );
+                                
+                                if (action) {
+                                    // Ouvrir Google Maps
+                                    window.open(mapsLink, '_blank');
+                                } else {
+                                    // Partager la position
+                                    const shareText = `Je suis ici :\n📍 ${address}\n🗺️ ${mapsUrl}`;
+                                    
+                                    if (navigator.share) {
+                                        // API Web Share native
+                                        navigator.share({
+                                            title: 'Ma position',
+                                            text: shareText,
+                                            url: mapsUrl
+                                        });
+                                    } else {
+                                        // Fallback : copier dans le presse-papier
+                                        navigator.clipboard.writeText(shareText).then(() => {
+                                            alert('✅ Position copiée !\n\nVous pouvez maintenant la coller dans un SMS ou WhatsApp pour l\'envoyer à vos proches.');
+                                        }).catch(() => {
+                                            // Fallback ultime
+                                            prompt('Copiez cette position pour l\'envoyer :', shareText);
+                                        });
+                                    }
+                                }
+                                
+                            } catch (error) {
+                                console.error('Erreur géocodage:', error);
+                                const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                                alert(
+                                    `📍 Position GPS :\n${latitude.toFixed(6)}, ${longitude.toFixed(6)}\n\n` +
+                                    `Carte : ${mapsUrl}`
+                                );
+                            }
                         },
-                        () => alert('Position: 123 Rue de la Paix, 75001 Paris')
+                        (error) => {
+                            console.error('Erreur géolocalisation:', error);
+                            alert(
+                                '❌ Impossible d\'obtenir votre position.\n\n' +
+                                'Vérifiez que la géolocalisation est activée dans les paramètres de votre navigateur.\n\n' +
+                                '📍 Position par défaut : 123 Rue de la Paix, 75001 Paris'
+                            );
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 60000
+                        }
                     );
                 } else {
-                    alert('Position: 123 Rue de la Paix, 75001 Paris');
+                    alert(
+                        '❌ Géolocalisation non supportée.\n\n' +
+                        '📍 Position par défaut : 123 Rue de la Paix, 75001 Paris'
+                    );
                 }
             };
 
@@ -445,6 +604,9 @@
                                         required
                                     />
                                 </div>
+                    </div>
+                </div>
+            );
                                 <div>
                                     <label className="block text-sm font-medium mb-1">Téléphone</label>
                                     <input
@@ -637,6 +799,7 @@
                         >
                             <MapPin size={48} className="text-teal-600" />
                             <span className="text-xl font-semibold text-teal-800">Où suis-je ?</span>
+                            <span className="text-sm text-teal-600">Carte + Partage</span>
                         </button>
                     </div>
 
@@ -850,7 +1013,7 @@
                                 onClick={toggleFlashlight}
                                 className={`w-full p-8 rounded-2xl transition-all duration-300 ${
                                     flashlightOn 
-                                        ? 'bg-yellow-400 text-black shadow-lg transform scale-105' 
+                                        ? 'bg-yellow-400 text-black shadow-lg transform scale-105 animate-pulse' 
                                         : 'bg-gray-700 text-white hover:bg-gray-600'
                                 }`}
                             >
@@ -858,7 +1021,15 @@
                                 <span className="text-2xl font-bold block">
                                     {flashlightOn ? 'ALLUMÉE' : 'Allumer'}
                                 </span>
+                                <span className="text-sm opacity-90 block mt-1">
+                                    {flashlightOn ? 'Appuyez pour éteindre' : 'Flash caméra + écran'}
+                                </span>
                             </button>
+                            <div className="text-center text-sm text-gray-600 mt-3">
+                                <p>• Flash de la caméra (si disponible)</p>
+                                <p>• Éclairage d'écran de secours</p>
+                                <p>• Parfait pour chercher des clés</p>
+                            </div>
                         </div>
 
                         <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
@@ -944,10 +1115,22 @@
                                     </div>
                                 )}
                             </div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <h2 className="text-xl font-semibold text-center mb-4">Ma Position</h2>
+                            <button
+                                onClick={getLocation}
+                                className="w-full bg-teal-500 hover:bg-teal-600 text-white p-6 rounded-lg mb-3"
+                            >
+                                <MapPin size={32} className="mx-auto mb-2" />
+                                <span className="text-lg font-semibold block">Où suis-je ?</span>
+                                <span className="text-sm opacity-90 block mt-1">Carte + Partage position</span>
+                            </button>
+                            <div className="text-center text-sm text-gray-600">
+                                <p>• Voir ma position sur la carte</p>
+                                <p>• Partager ma position par SMS/WhatsApp</p>
+                                <p>• Adresse complète automatique</p>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            );
 
             const ShoppingListScreen = () => (
                 <div className="p-6 min-h-screen bg-gray-50">
@@ -1147,6 +1330,30 @@
 
         ReactDOM.render(<SeniorHelperApp />, document.getElementById('root'));
     </script>
+
+    <!-- Instructions de configuration -->
+    <div style="display: none;">
+        <!-- 
+        CONFIGURATION DES APIS :
+        
+        1. GOOGLE MAPS PLATFORM API :
+        - Allez sur https://console.cloud.google.com/
+        - Créez un projet ou sélectionnez-en un
+        - Activez les APIs : "Geocoding API" et "Maps JavaScript API"
+        - Créez une clé API dans "Identifiants"
+        - Remplacez 'VOTRE_CLE_GOOGLE_MAPS_API' ligne 25 par votre clé
+        
+        2. OPENWEATHERMAP API :
+        - Créez un compte sur https://openweathermap.org/api
+        - Obtenez votre clé API gratuite
+        - Remplacez 'VOTRE_CLE_API_OPENWEATHERMAP' ligne 26 par votre clé
+        
+        FONCTIONNALITÉS AVANCÉES :
+        - Météo précise avec géolocalisation Google Maps
+        - Lampe torche avec flash caméra réel
+        - Géolocalisation avec carte Google Maps intégrée
+        - Partage de position automatique par SMS/WhatsApp
+        -->
+    </div>
 </body>
 </html>
-
