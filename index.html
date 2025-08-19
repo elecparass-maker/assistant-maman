@@ -33,7 +33,6 @@
         
         // Configuration APIs
         const GOOGLE_MAPS_API_KEY = 'AIzaSyB1fJkw2tbgd56D8oSBdK9DDy-jxLvym6o';
-        const WEATHER_API_KEY = 'VOTRE_CLE_API_OPENWEATHERMAP';
         
         // Icônes
         const Phone = ({ size = 24 }) => (
@@ -224,9 +223,9 @@
 
             const fetchWeather = async () => {
                 try {
-                    // Utiliser Google Maps Geocoding + OpenWeatherMap pour plus de précision
-                    if (GOOGLE_MAPS_API_KEY !== 'VOTRE_CLE_GOOGLE_MAPS_API' && WEATHER_API_KEY !== 'VOTRE_CLE_API_OPENWEATHERMAP') {
-                        // 1. Obtenir les coordonnées avec Google Maps
+                    // Utiliser Google Maps pour météo ET géolocalisation
+                    if (GOOGLE_MAPS_API_KEY !== 'VOTRE_CLE_GOOGLE_MAPS_API') {
+                        // 1. Obtenir les coordonnées avec Google Maps Geocoding
                         const geocodeResponse = await fetch(
                             `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(selectedCity)}&key=${GOOGLE_MAPS_API_KEY}`
                         );
@@ -235,18 +234,47 @@
                         if (geocodeData.results && geocodeData.results.length > 0) {
                             const location = geocodeData.results[0].geometry.location;
                             
-                            // 2. Obtenir la météo avec les coordonnées précises
+                            // 2. Obtenir la météo avec Google Weather API (via Places)
+                            // Note: Google n'a pas d'API météo directe, on utilise une API météo gratuite
                             const weatherResponse = await fetch(
-                                `https://api.openweathermap.org/data/2.5/weather?lat=${location.lat}&lon=${location.lng}&appid=${WEATHER_API_KEY}&units=metric&lang=fr`
+                                `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lng}&current_weather=true&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Europe/Paris`
                             );
                             const weatherData = await weatherResponse.json();
                             
+                            // Convertir les codes météo Open-Meteo en descriptions
+                            const getWeatherDescription = (code) => {
+                                const weatherCodes = {
+                                    0: 'Ciel dégagé',
+                                    1: 'Principalement dégagé',
+                                    2: 'Partiellement nuageux',
+                                    3: 'Couvert',
+                                    45: 'Brouillard',
+                                    48: 'Brouillard givrant',
+                                    51: 'Bruine légère',
+                                    53: 'Bruine modérée',
+                                    55: 'Bruine dense',
+                                    61: 'Pluie légère',
+                                    63: 'Pluie modérée',
+                                    65: 'Pluie forte',
+                                    71: 'Neige légère',
+                                    73: 'Neige modérée',
+                                    75: 'Neige forte',
+                                    80: 'Averses légères',
+                                    81: 'Averses modérées',
+                                    82: 'Averses fortes',
+                                    95: 'Orage',
+                                    96: 'Orage avec grêle légère',
+                                    99: 'Orage avec grêle forte'
+                                };
+                                return weatherCodes[code] || 'Conditions météo inconnues';
+                            };
+                            
                             setWeather({
                                 location: geocodeData.results[0].formatted_address.split(',')[0],
-                                temperature: Math.round(weatherData.main.temp),
-                                condition: weatherData.weather[0].description,
-                                humidity: weatherData.main.humidity,
-                                wind: Math.round(weatherData.wind.speed * 3.6),
+                                temperature: Math.round(weatherData.current_weather.temperature),
+                                condition: getWeatherDescription(weatherData.current_weather.weathercode),
+                                humidity: weatherData.hourly.relative_humidity_2m[0] || 'N/A',
+                                wind: Math.round(weatherData.current_weather.windspeed),
                                 coordinates: location
                             });
                         } else {
@@ -365,58 +393,125 @@
             };
 
             // Autres fonctions
-            // Lampe torche avec vraie caméra
+            // Lampe torche simplifiée mais efficace
             const toggleFlashlight = async () => {
                 try {
                     if (!flashlightOn) {
-                        // Essayer d'accéder à la caméra arrière avec flash
-                        const stream = await navigator.mediaDevices.getUserMedia({
-                            video: {
-                                facingMode: 'environment',
-                                torch: true
+                        // Méthode 1: Essayer l'API ImageCapture moderne
+                        if ('ImageCapture' in window) {
+                            try {
+                                const stream = await navigator.mediaDevices.getUserMedia({
+                                    video: { facingMode: 'environment' }
+                                });
+                                
+                                const track = stream.getVideoTracks()[0];
+                                const imageCapture = new ImageCapture(track);
+                                const capabilities = track.getCapabilities();
+                                
+                                if (capabilities.torch) {
+                                    await track.applyConstraints({
+                                        advanced: [{ torch: true }]
+                                    });
+                                    setFlashlightStream(stream);
+                                    setFlashlightOn(true);
+                                    
+                                    // Cacher la vidéo mais maintenir le stream
+                                    const video = document.createElement('video');
+                                    video.style.position = 'fixed';
+                                    video.style.top = '-1000px';
+                                    video.style.left = '-1000px';
+                                    video.style.width = '1px';
+                                    video.style.height = '1px';
+                                    video.srcObject = stream;
+                                    video.play();
+                                    document.body.appendChild(video);
+                                    
+                                    return; // Succès, sortir de la fonction
+                                }
+                            } catch (e) {
+                                console.log('ImageCapture failed, trying fallback');
                             }
-                        });
+                        }
                         
-                        // Créer un élément vidéo caché pour maintenir le stream
-                        const video = document.createElement('video');
-                        video.style.display = 'none';
-                        video.srcObject = stream;
-                        video.play();
-                        document.body.appendChild(video);
-                        
-                        // Activer le flash si disponible
-                        const track = stream.getVideoTracks()[0];
-                        if (track.getCapabilities && track.getCapabilities().torch) {
+                        // Méthode 2: Essayer getUserMedia simple
+                        try {
+                            const stream = await navigator.mediaDevices.getUserMedia({
+                                video: { 
+                                    facingMode: 'environment',
+                                    torch: true 
+                                }
+                            });
+                            
+                            const track = stream.getVideoTracks()[0];
                             await track.applyConstraints({
                                 advanced: [{ torch: true }]
                             });
+                            
+                            setFlashlightStream(stream);
+                            setFlashlightOn(true);
+                            
+                            const video = document.createElement('video');
+                            video.style.display = 'none';
+                            video.srcObject = stream;
+                            video.play();
+                            document.body.appendChild(video);
+                            
+                            return; // Succès
+                        } catch (e) {
+                            console.log('MediaDevices failed, using screen flash');
                         }
                         
-                        setFlashlightStream(stream);
+                        // Méthode 3: Flash d'écran amélioré
                         setFlashlightOn(true);
-                        
-                        // Fallback visuel
                         document.body.style.backgroundColor = '#FFFFFF';
-                        document.body.style.filter = 'brightness(1.5)';
+                        document.body.style.filter = 'brightness(2) contrast(1.5)';
+                        
+                        // Créer un overlay blanc plein écran
+                        const overlay = document.createElement('div');
+                        overlay.id = 'flashlight-overlay';
+                        overlay.style.cssText = `
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100vw;
+                            height: 100vh;
+                            background-color: white;
+                            z-index: 9999;
+                            pointer-events: none;
+                            opacity: 0.8;
+                        `;
+                        document.body.appendChild(overlay);
                         
                     } else {
                         // Éteindre la lampe
                         if (flashlightStream) {
                             const tracks = flashlightStream.getTracks();
                             tracks.forEach(track => {
-                                if (track.getCapabilities && track.getCapabilities().torch) {
+                                try {
                                     track.applyConstraints({
                                         advanced: [{ torch: false }]
                                     });
+                                } catch (e) {
+                                    console.log('Could not turn off torch');
                                 }
                                 track.stop();
                             });
                             
-                            // Supprimer l'élément vidéo
-                            const videos = document.querySelectorAll('video[style*="display: none"]');
-                            videos.forEach(video => video.remove());
+                            // Supprimer les éléments vidéo
+                            const videos = document.querySelectorAll('video');
+                            videos.forEach(video => {
+                                if (video.srcObject === flashlightStream) {
+                                    video.remove();
+                                }
+                            });
                             
                             setFlashlightStream(null);
+                        }
+                        
+                        // Nettoyer l'overlay et les styles
+                        const overlay = document.getElementById('flashlight-overlay');
+                        if (overlay) {
+                            overlay.remove();
                         }
                         
                         setFlashlightOn(false);
@@ -424,17 +519,8 @@
                         document.body.style.filter = '';
                     }
                 } catch (error) {
-                    // Fallback en cas d'erreur
-                    console.log('Flash non disponible, utilisation du fallback visuel');
-                    if (!flashlightOn) {
-                        document.body.style.backgroundColor = '#FFFFFF';
-                        document.body.style.filter = 'brightness(2)';
-                        setFlashlightOn(true);
-                    } else {
-                        document.body.style.backgroundColor = '';
-                        document.body.style.filter = '';
-                        setFlashlightOn(false);
-                    }
+                    console.error('Erreur lampe torche:', error);
+                    alert('❌ Impossible d\'accéder à la lampe torche.\n\nVérifiez les permissions de caméra dans les paramètres du navigateur.');
                 }
             };
 
@@ -1026,9 +1112,9 @@
                                 </span>
                             </button>
                             <div className="text-center text-sm text-gray-600 mt-3">
-                                <p>• Flash de la caméra (si disponible)</p>
-                                <p>• Éclairage d'écran de secours</p>
-                                <p>• Parfait pour chercher des clés</p>
+                                <p>• Flash LED de la caméra</p>
+                                <p>• Éclairage d'écran très lumineux</p>
+                                <p>• 3 méthodes pour fonctionner partout</p>
                             </div>
                         </div>
 
@@ -1334,25 +1420,25 @@
     <!-- Instructions de configuration -->
     <div style="display: none;">
         <!-- 
-        CONFIGURATION DES APIS :
+        CONFIGURATION SIMPLIFIÉE :
         
-        1. GOOGLE MAPS PLATFORM API :
+        1. GOOGLE MAPS PLATFORM API (SEULE API NÉCESSAIRE) :
         - Allez sur https://console.cloud.google.com/
         - Créez un projet ou sélectionnez-en un
         - Activez les APIs : "Geocoding API" et "Maps JavaScript API"
         - Créez une clé API dans "Identifiants"
         - Remplacez 'VOTRE_CLE_GOOGLE_MAPS_API' ligne 25 par votre clé
         
-        2. OPENWEATHERMAP API :
-        - Créez un compte sur https://openweathermap.org/api
-        - Obtenez votre clé API gratuite
-        - Remplacez 'VOTRE_CLE_API_OPENWEATHERMAP' ligne 26 par votre clé
+        FONCTIONNALITÉS :
+        - Météo gratuite avec Open-Meteo (aucune clé requise)
+        - Géolocalisation précise avec Google Maps
+        - Lampe torche avec 3 méthodes de fallback
+        - Partage de position automatique
         
-        FONCTIONNALITÉS AVANCÉES :
-        - Météo précise avec géolocalisation Google Maps
-        - Lampe torche avec flash caméra réel
-        - Géolocalisation avec carte Google Maps intégrée
-        - Partage de position automatique par SMS/WhatsApp
+        LAMPE TORCHE :
+        - Méthode 1 : Flash LED de la caméra (Android/iOS récents)
+        - Méthode 2 : Contraintes torch via MediaDevices
+        - Méthode 3 : Overlay blanc plein écran ultra-lumineux
         -->
     </div>
 </body>
