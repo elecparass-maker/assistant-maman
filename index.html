@@ -9,15 +9,20 @@
     <meta name="apple-mobile-web-app-title" content="Assistant Maman">
     <title>Assistant Maman</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <style>
-        body { margin: 0; padding: 0; overflow-x: hidden; }
-        .ios-safe-area { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
-        button { -webkit-tap-highlight-color: transparent; }
+        body { 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        button { 
+            -webkit-tap-highlight-color: transparent; 
+        }
     </style>
 </head>
 <body>
@@ -26,18 +31,18 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
         
-        // Configuration API météo
-        const WEATHER_API_KEY = 'AIzaSyB1fJkw2tbgd56D8oSBdK9DDy-jxLvym6o';
+        // Configuration
+        const WEATHER_API_KEY = 'VOTRE_CLE_API_OPENWEATHERMAP';
         
         // Icônes
-        const Phone = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Phone = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
         );
         
-        const Calendar = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Calendar = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
                 <line x1="16" y1="2" x2="16" y2="6"/>
                 <line x1="8" y1="2" x2="8" y2="6"/>
@@ -45,62 +50,53 @@
             </svg>
         );
         
-        const Cloud = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Cloud = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>
             </svg>
         );
         
-        const Users = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Users = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                 <circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
         );
         
-        const AlertTriangle = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const AlertTriangle = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/>
                 <line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
         );
         
-        const MapPin = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const MapPin = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                 <circle cx="12" cy="10" r="3"/>
             </svg>
         );
         
-        const Flashlight = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-                <path d="M9 2h6l3 7H6l3-7z"/>
-                <path d="M12 9v13"/>
-                <path d="M9 22h6"/>
-            </svg>
-        );
-        
-        const Timer = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Timer = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="10" y1="2" x2="14" y2="2"/>
                 <line x1="12" y1="14" x2="15" y2="11"/>
                 <circle cx="12" cy="14" r="8"/>
             </svg>
         );
         
-        const ShoppingCart = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const ShoppingCart = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="9" cy="21" r="1"/>
                 <circle cx="20" cy="21" r="1"/>
                 <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
             </svg>
         );
         
-        const Mic = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Mic = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                 <line x1="12" y1="19" x2="12" y2="23"/>
@@ -108,19 +104,16 @@
             </svg>
         );
         
-        const MicOff = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const MicOff = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="1" y1="1" x2="23" y2="23"/>
                 <path d="M9 9v3a3 3 0 0 0 5.12 2.12L9 9z"/>
                 <path d="M12 1a3 3 0 0 0-3 3v5l6 6V4a3 3 0 0 0-3-3z"/>
-                <path d="M19 10v2a7 7 0 0 1-.11 1.23"/>
-                <line x1="12" y1="19" x2="12" y2="23"/>
-                <line x1="8" y1="23" x2="16" y2="23"/>
             </svg>
         );
         
-        const Trash2 = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Trash2 = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="3,6 5,6 21,6"/>
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
                 <line x1="10" y1="11" x2="10" y2="17"/>
@@ -128,10 +121,18 @@
             </svg>
         );
 
-        const Plus = ({ size = 24, className = "" }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
+        const Plus = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="12" y1="5" x2="12" y2="19"/>
                 <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+        );
+
+        const Flashlight = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 2h6l3 7H6l3-7z"/>
+                <path d="M12 9v13"/>
+                <path d="M9 22h6"/>
             </svg>
         );
 
@@ -144,60 +145,54 @@
             const [timerSeconds, setTimerSeconds] = useState(0);
             const [isTimerRunning, setIsTimerRunning] = useState(false);
             const [timerInterval, setTimerInterval] = useState(null);
-            const [location, setLocation] = useState({
-                address: '123 Rue de la Paix, 75001 Paris',
-                coordinates: { lat: 48.8566, lng: 2.3522 }
-            });
             const [shoppingList, setShoppingList] = useState([
                 { id: 1, item: 'Pain', completed: false },
-                { id: 2, item: 'Lait', completed: false },
-                { id: 3, item: 'Fromage', completed: true }
+                { id: 2, item: 'Lait', completed: false }
             ]);
             const [isListening, setIsListening] = useState(false);
             const [newItem, setNewItem] = useState('');
             
-            // États pour contacts
+            // États pour contacts avec sauvegarde
             const [contacts, setContacts] = useState([]);
             const [editingContact, setEditingContact] = useState(null);
             const [showAddContact, setShowAddContact] = useState(false);
             
-            // États pour rendez-vous
+            // États pour rendez-vous avec sauvegarde
             const [appointments, setAppointments] = useState([]);
             const [editingAppointment, setEditingAppointment] = useState(null);
             const [showAddAppointment, setShowAddAppointment] = useState(false);
             
-            const [emergencyContacts, setEmergencyContacts] = useState([
+            const [emergencyContacts] = useState([
                 { id: 1, name: 'SAMU', phone: '15', color: 'bg-red-500' },
                 { id: 2, name: 'Pompiers', phone: '18', color: 'bg-red-600' },
                 { id: 3, name: 'Police', phone: '17', color: 'bg-blue-600' },
                 { id: 4, name: 'Marie (Fille)', phone: '06 12 34 56 78', color: 'bg-green-600' }
             ]);
 
-            // Chargement des données
+            // Initialisation
             useEffect(() => {
-                const savedContacts = localStorage.getItem('assistant-maman-contacts');
-                const savedAppointments = localStorage.getItem('assistant-maman-appointments');
-                const savedCity = localStorage.getItem('assistant-maman-city');
+                // Charger les données sauvegardées
+                const savedContacts = localStorage.getItem('contacts');
+                const savedAppointments = localStorage.getItem('appointments');
+                const savedCity = localStorage.getItem('selectedCity');
                 
                 if (savedContacts) {
                     setContacts(JSON.parse(savedContacts));
                 } else {
-                    const defaultContacts = [
+                    setContacts([
                         { id: 1, name: 'Marie (Fille)', phone: '06 12 34 56 78', type: 'famille' },
                         { id: 2, name: 'Pierre (Fils)', phone: '06 87 65 43 21', type: 'famille' },
                         { id: 3, name: 'Dr. Martin', phone: '01 23 45 67 89', type: 'médecin' }
-                    ];
-                    setContacts(defaultContacts);
+                    ]);
                 }
                 
                 if (savedAppointments) {
                     setAppointments(JSON.parse(savedAppointments));
                 } else {
-                    const defaultAppointments = [
+                    setAppointments([
                         { id: 1, date: '2025-08-20', time: '10:00', doctor: 'Dr. Martin', type: 'Médecin généraliste' },
                         { id: 2, date: '2025-08-25', time: '14:30', doctor: 'Dr. Durand', type: 'Cardiologue' }
-                    ];
-                    setAppointments(defaultAppointments);
+                    ]);
                 }
                 
                 if (savedCity) {
@@ -205,26 +200,23 @@
                 }
                 
                 fetchWeather();
-                if ('Notification' in window && Notification.permission === 'default') {
-                    Notification.requestPermission();
-                }
             }, []);
 
             // Sauvegarde automatique
             useEffect(() => {
                 if (contacts.length > 0) {
-                    localStorage.setItem('assistant-maman-contacts', JSON.stringify(contacts));
+                    localStorage.setItem('contacts', JSON.stringify(contacts));
                 }
             }, [contacts]);
 
             useEffect(() => {
                 if (appointments.length > 0) {
-                    localStorage.setItem('assistant-maman-appointments', JSON.stringify(appointments));
+                    localStorage.setItem('appointments', JSON.stringify(appointments));
                 }
             }, [appointments]);
 
             useEffect(() => {
-                localStorage.setItem('assistant-maman-city', selectedCity);
+                localStorage.setItem('selectedCity', selectedCity);
                 fetchWeather();
             }, [selectedCity]);
 
@@ -236,18 +228,15 @@
                         );
                         const data = await response.json();
                         
-                        if (data.cod === 200) {
-                            setWeather({
-                                location: data.name,
-                                temperature: Math.round(data.main.temp),
-                                condition: data.weather[0].description,
-                                humidity: data.main.humidity,
-                                wind: Math.round(data.wind.speed * 3.6)
-                            });
-                        } else {
-                            throw new Error('Ville non trouvée');
-                        }
+                        setWeather({
+                            location: data.name,
+                            temperature: Math.round(data.main.temp),
+                            condition: data.weather[0].description,
+                            humidity: data.main.humidity,
+                            wind: Math.round(data.wind.speed * 3.6)
+                        });
                     } else {
+                        // Simulation
                         setWeather({
                             location: selectedCity,
                             temperature: 22,
@@ -257,7 +246,6 @@
                         });
                     }
                 } catch (error) {
-                    console.error('Erreur météo:', error);
                     setWeather({
                         location: selectedCity,
                         temperature: '--',
@@ -266,6 +254,21 @@
                         wind: '--'
                     });
                 }
+            };
+
+            // Fonctions utilitaires
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('fr-FR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+            };
+
+            const callNumber = (phone) => {
+                window.location.href = `tel:${phone}`;
             };
 
             // Fonctions contacts
@@ -283,7 +286,7 @@
             };
 
             const deleteContact = (id) => {
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce contact ?')) {
+                if (confirm('Supprimer ce contact ?')) {
                     setContacts(contacts.filter(contact => contact.id !== id));
                 }
             };
@@ -303,35 +306,12 @@
             };
 
             const deleteAppointment = (id) => {
-                if (confirm('Êtes-vous sûr de vouloir supprimer ce rendez-vous ?')) {
+                if (confirm('Supprimer ce rendez-vous ?')) {
                     setAppointments(appointments.filter(appointment => appointment.id !== id));
                 }
             };
 
-            const formatDate = (dateStr) => {
-                const date = new Date(dateStr);
-                return date.toLocaleDateString('fr-FR', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
-                });
-            };
-
-            const callNumber = (phone) => {
-                window.location.href = `tel:${phone}`;
-            };
-
-            const toggleFlashlight = () => {
-                if (!flashlightOn) {
-                    document.body.style.backgroundColor = '#FFFFFF';
-                    setFlashlightOn(true);
-                } else {
-                    document.body.style.backgroundColor = '';
-                    setFlashlightOn(false);
-                }
-            };
-
+            // Fonctions minuteur
             const startTimer = () => {
                 if (timerMinutes === 0 && timerSeconds === 0) return;
                 
@@ -347,18 +327,7 @@
                     if (currentSeconds <= 0) {
                         clearInterval(interval);
                         setIsTimerRunning(false);
-                        
-                        if ('Notification' in window && Notification.permission === 'granted') {
-                            new Notification('⏰ Minuteur terminé !', {
-                                body: 'Votre temps est écoulé'
-                            });
-                        }
-                        
-                        if ('vibrate' in navigator) {
-                            navigator.vibrate([500, 200, 500]);
-                        }
-                        
-                        alert('⏰ Temps écoulé ! Votre minuteur est terminé !');
+                        alert('⏰ Minuteur terminé !');
                     }
                 }, 1000);
                 
@@ -375,51 +344,49 @@
                 setTimerSeconds(0);
             };
 
+            // Autres fonctions
+            const toggleFlashlight = () => {
+                if (!flashlightOn) {
+                    document.body.style.backgroundColor = '#FFFFFF';
+                    setFlashlightOn(true);
+                } else {
+                    document.body.style.backgroundColor = '';
+                    setFlashlightOn(false);
+                }
+            };
+
             const getLocation = () => {
-                if ('geolocation' in navigator) {
+                if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         (position) => {
                             const { latitude, longitude } = position.coords;
-                            const address = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-                            alert(`Vous êtes ici :\n📍 ${address}\n\nCette information peut être partagée avec vos proches si nécessaire.`);
+                            alert(`Position: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`);
                         },
-                        () => {
-                            alert(`Vous êtes ici :\n📍 ${location.address}\n\nCette information peut être partagée avec vos proches si nécessaire.`);
-                        }
+                        () => alert('Position: 123 Rue de la Paix, 75001 Paris')
                     );
                 } else {
-                    alert(`Vous êtes ici :\n📍 ${location.address}\n\nCette information peut être partagée avec vos proches si nécessaire.`);
+                    alert('Position: 123 Rue de la Paix, 75001 Paris');
                 }
             };
 
             const startVoiceRecognition = () => {
-                if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                    const recognition = new SpeechRecognition();
-                    
+                if ('webkitSpeechRecognition' in window) {
+                    const recognition = new window.webkitSpeechRecognition();
                     recognition.lang = 'fr-FR';
-                    recognition.continuous = false;
-                    recognition.interimResults = false;
-                    
                     recognition.onstart = () => setIsListening(true);
                     recognition.onresult = (event) => {
                         const transcript = event.results[0][0].transcript;
                         addToShoppingList(transcript);
                         setIsListening(false);
                     };
-                    recognition.onerror = () => {
-                        setIsListening(false);
-                        alert('Erreur de reconnaissance vocale. Essayez de nouveau.');
-                    };
-                    recognition.onend = () => setIsListening(false);
-                    
+                    recognition.onerror = () => setIsListening(false);
                     recognition.start();
                 } else {
+                    // Simulation
                     setIsListening(true);
                     setTimeout(() => {
-                        const items = ['Bananes', 'Yaourts', 'Poulet', 'Tomates', 'Pâtes', 'Œufs'];
-                        const randomItem = items[Math.floor(Math.random() * items.length)];
-                        addToShoppingList(randomItem);
+                        const items = ['Bananes', 'Yaourts', 'Poulet'];
+                        addToShoppingList(items[Math.floor(Math.random() * items.length)]);
                         setIsListening(false);
                     }, 2000);
                 }
@@ -427,12 +394,11 @@
 
             const addToShoppingList = (item) => {
                 if (item.trim()) {
-                    const newItemObj = {
+                    setShoppingList([...shoppingList, {
                         id: Date.now(),
                         item: item.trim(),
                         completed: false
-                    };
-                    setShoppingList([...shoppingList, newItemObj]);
+                    }]);
                 }
             };
 
@@ -446,11 +412,7 @@
                 setShoppingList(shoppingList.filter(item => item.id !== id));
             };
 
-            const clearCompletedItems = () => {
-                setShoppingList(shoppingList.filter(item => !item.completed));
-            };
-
-            // Formulaire contact
+            // Formulaires
             const ContactForm = ({ contact, onSave, onCancel }) => {
                 const [formData, setFormData] = useState({
                     name: contact?.name || '',
@@ -469,33 +431,33 @@
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
                             <h2 className="text-xl font-bold mb-4">
-                                {contact ? 'Modifier le contact' : 'Ajouter un contact'}
+                                {contact ? 'Modifier contact' : 'Nouveau contact'}
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Nom</label>
+                                    <label className="block text-sm font-medium mb-1">Nom</label>
                                     <input
                                         type="text"
                                         value={formData.name}
                                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                                         className="w-full p-3 border border-gray-300 rounded-lg text-lg"
-                                        placeholder="Ex: Marie (Fille)"
+                                        placeholder="Marie (Fille)"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone</label>
+                                    <label className="block text-sm font-medium mb-1">Téléphone</label>
                                     <input
                                         type="tel"
                                         value={formData.phone}
                                         onChange={(e) => setFormData({...formData, phone: e.target.value})}
                                         className="w-full p-3 border border-gray-300 rounded-lg text-lg"
-                                        placeholder="Ex: 06 12 34 56 78"
+                                        placeholder="06 12 34 56 78"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                                    <label className="block text-sm font-medium mb-1">Type</label>
                                     <select
                                         value={formData.type}
                                         onChange={(e) => setFormData({...formData, type: e.target.value})}
@@ -510,14 +472,14 @@
                                 <div className="flex gap-3">
                                     <button
                                         type="submit"
-                                        className="flex-1 bg-green-500 hover:bg-green-600 text-white py-3 rounded-lg font-semibold"
+                                        className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold"
                                     >
                                         Sauvegarder
                                     </button>
                                     <button
                                         type="button"
                                         onClick={onCancel}
-                                        className="flex-1 bg-gray-500 hover:bg-gray-600 text-white py-3 rounded-lg font-semibold"
+                                        className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold"
                                     >
                                         Annuler
                                     </button>
@@ -528,7 +490,6 @@
                 );
             };
 
-            // Formulaire rendez-vous
             const AppointmentForm = ({ appointment, onSave, onCancel }) => {
                 const [formData, setFormData] = useState({
                     date: appointment?.date || '',
@@ -548,11 +509,11 @@
                     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
                         <div className="bg-white rounded-lg p-6 w-full max-w-md">
                             <h2 className="text-xl font-bold mb-4">
-                                {appointment ? 'Modifier le rendez-vous' : 'Ajouter un rendez-vous'}
+                                {appointment ? 'Modifier rendez-vous' : 'Nouveau rendez-vous'}
                             </h2>
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                    <label className="block text-sm font-medium mb-1">Date</label>
                                     <input
                                         type="date"
                                         value={formData.date}
@@ -562,7 +523,7 @@
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Heure</label>
+                                    <label className="block text-sm font-medium mb-1">Heure</label>
                                     <input
                                         type="time"
                                         value={formData.time}
@@ -572,18 +533,619 @@
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Médecin</label>
+                                    <label className="block text-sm font-medium mb-1">Médecin</label>
                                     <input
                                         type="text"
                                         value={formData.doctor}
                                         onChange={(e) => setFormData({...formData, doctor: e.target.value})}
                                         className="w-full p-3 border border-gray-300 rounded-lg text-lg"
-                                        placeholder="Ex: Dr. Martin"
+                                        placeholder="Dr. Martin"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Type de consultation</label>
+                                    <label className="block text-sm font-medium mb-1">Type</label>
                                     <input
                                         type="text"
-                                        value={formData.
+                                        value={formData.type}
+                                        onChange={(e) => setFormData({...formData, type: e.target.value})}
+                                        className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                        placeholder="Médecin généraliste"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex gap-3">
+                                    <button
+                                        type="submit"
+                                        className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Sauvegarder
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={onCancel}
+                                        className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                );
+            };
+
+            // Écrans
+            const HomeScreen = () => (
+                <div className="p-6 space-y-6 min-h-screen bg-gray-50">
+                    <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
+                        Bonjour Maman ! 👋
+                    </h1>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                        <button
+                            onClick={() => setCurrentScreen('weather')}
+                            className="bg-blue-100 hover:bg-blue-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <Cloud size={48} className="text-blue-600" />
+                            <span className="text-xl font-semibold text-blue-800">Météo</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => setCurrentScreen('appointments')}
+                            className="bg-green-100 hover:bg-green-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <Calendar size={48} className="text-green-600" />
+                            <span className="text-xl font-semibold text-green-800">Rendez-vous</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => setCurrentScreen('contacts')}
+                            className="bg-purple-100 hover:bg-purple-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <Users size={48} className="text-purple-600" />
+                            <span className="text-xl font-semibold text-purple-800">Contacts</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => setCurrentScreen('emergency')}
+                            className="bg-red-100 hover:bg-red-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <AlertTriangle size={48} className="text-red-600" />
+                            <span className="text-xl font-semibold text-red-800">Urgence</span>
+                        </button>
+
+                        <button
+                            onClick={() => setCurrentScreen('tools')}
+                            className="bg-orange-100 hover:bg-orange-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <Timer size={48} className="text-orange-600" />
+                            <span className="text-xl font-semibold text-orange-800">Outils</span>
+                        </button>
+
+                        <button
+                            onClick={() => setCurrentScreen('shopping')}
+                            className="bg-pink-100 hover:bg-pink-200 p-6 rounded-2xl flex flex-col items-center space-y-3"
+                        >
+                            <ShoppingCart size={48} className="text-pink-600" />
+                            <span className="text-xl font-semibold text-pink-800">Courses</span>
+                        </button>
+
+                        <button
+                            onClick={getLocation}
+                            className="bg-teal-100 hover:bg-teal-200 p-6 rounded-2xl flex flex-col items-center space-y-3 col-span-2"
+                        >
+                            <MapPin size={48} className="text-teal-600" />
+                            <span className="text-xl font-semibold text-teal-800">Où suis-je ?</span>
+                        </button>
+                    </div>
+
+                    {weather && (
+                        <div className="bg-gradient-to-r from-blue-400 to-blue-600 text-white p-6 rounded-2xl">
+                            <h2 className="text-2xl font-bold mb-2">Météo du jour</h2>
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <p className="text-lg">{weather.location}</p>
+                                    <p className="text-sm opacity-90">{weather.condition}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-4xl font-bold">{weather.temperature}°C</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {appointments.length > 0 && (
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg">
+                            <h3 className="text-lg font-semibold text-yellow-800 mb-2">Prochain rendez-vous</h3>
+                            <p className="text-yellow-700">
+                                {appointments[0].doctor} - {formatDate(appointments[0].date)} à {appointments[0].time}
+                            </p>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const WeatherScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <button
+                        onClick={() => setCurrentScreen('home')}
+                        className="mb-6 text-blue-600 text-lg font-semibold"
+                    >
+                        ← Retour
+                    </button>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center">Météo</h1>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm mb-6">
+                        <label className="block text-lg font-medium text-gray-700 mb-2">
+                            Choisir une ville :
+                        </label>
+                        <select
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                        >
+                            <option value="Paris">Paris</option>
+                            <option value="Lyon">Lyon</option>
+                            <option value="Marseille">Marseille</option>
+                            <option value="Toulouse">Toulouse</option>
+                            <option value="Nice">Nice</option>
+                            <option value="Nantes">Nantes</option>
+                            <option value="Strasbourg">Strasbourg</option>
+                            <option value="Montpellier">Montpellier</option>
+                            <option value="Bordeaux">Bordeaux</option>
+                            <option value="Lille">Lille</option>
+                        </select>
+                    </div>
+                    
+                    {weather && (
+                        <div className="bg-gradient-to-br from-blue-400 to-blue-600 text-white p-8 rounded-2xl">
+                            <div className="text-center mb-6">
+                                <h2 className="text-3xl font-bold">{weather.location}</h2>
+                                <p className="text-6xl font-bold my-4">{weather.temperature}°C</p>
+                                <p className="text-2xl capitalize">{weather.condition}</p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4 mt-8">
+                                <div className="bg-white bg-opacity-20 p-4 rounded-lg text-center">
+                                    <p className="text-sm opacity-90">Humidité</p>
+                                    <p className="text-2xl font-bold">{weather.humidity}%</p>
+                                </div>
+                                <div className="bg-white bg-opacity-20 p-4 rounded-lg text-center">
+                                    <p className="text-sm opacity-90">Vent</p>
+                                    <p className="text-2xl font-bold">{weather.wind} km/h</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const ContactsScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <div className="flex justify-between items-center mb-6">
+                        <button
+                            onClick={() => setCurrentScreen('home')}
+                            className="text-blue-600 text-lg font-semibold"
+                        >
+                            ← Retour
+                        </button>
+                        <button
+                            onClick={() => setShowAddContact(true)}
+                            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
+                        >
+                            <Plus size={24} />
+                        </button>
+                    </div>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center">Mes Contacts</h1>
+                    
+                    <div className="space-y-4">
+                        {contacts.map((contact) => (
+                            <div key={contact.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+                                <div className="flex justify-between items-center mb-3">
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-semibold text-gray-800">{contact.name}</h3>
+                                        <p className="text-lg text-gray-600">{contact.phone}</p>
+                                        <p className="text-sm text-gray-500 capitalize">{contact.type}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => callNumber(contact.phone)}
+                                        className="bg-green-500 hover:bg-green-600 text-white p-3 rounded-full"
+                                    >
+                                        <Phone size={24} />
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEditingContact(contact)}
+                                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium"
+                                    >
+                                        Modifier
+                                    </button>
+                                    <button
+                                        onClick={() => deleteContact(contact.id)}
+                                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium"
+                                    >
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const AppointmentsScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <div className="flex justify-between items-center mb-6">
+                        <button
+                            onClick={() => setCurrentScreen('home')}
+                            className="text-blue-600 text-lg font-semibold"
+                        >
+                            ← Retour
+                        </button>
+                        <button
+                            onClick={() => setShowAddAppointment(true)}
+                            className="bg-green-500 hover:bg-green-600 text-white p-2 rounded-full"
+                        >
+                            <Plus size={24} />
+                        </button>
+                    </div>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center">Rendez-vous Médicaux</h1>
+                    
+                    <div className="space-y-4">
+                        {appointments.map((appointment) => (
+                            <div key={appointment.id} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-semibold text-gray-800">{appointment.doctor}</h3>
+                                        <p className="text-lg text-gray-600 mt-1">{appointment.type}</p>
+                                        <p className="text-lg font-medium text-blue-600 mt-2">
+                                            {formatDate(appointment.date)}
+                                        </p>
+                                        <p className="text-lg font-medium text-blue-600">
+                                            {appointment.time}
+                                        </p>
+                                    </div>
+                                    <Calendar className="text-green-600" size={32} />
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setEditingAppointment(appointment)}
+                                        className="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg font-medium"
+                                    >
+                                        Modifier
+                                    </button>
+                                    <button
+                                        onClick={() => deleteAppointment(appointment.id)}
+                                        className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg font-medium"
+                                    >
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const ToolsScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <button
+                        onClick={() => setCurrentScreen('home')}
+                        className="mb-6 text-blue-600 text-lg font-semibold"
+                    >
+                        ← Retour
+                    </button>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center">Mes Outils</h1>
+                    
+                    <div className="space-y-6">
+                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <h2 className="text-xl font-semibold text-center mb-4">Lampe Torche</h2>
+                            <button
+                                onClick={toggleFlashlight}
+                                className={`w-full p-8 rounded-2xl transition-all duration-300 ${
+                                    flashlightOn 
+                                        ? 'bg-yellow-400 text-black shadow-lg transform scale-105' 
+                                        : 'bg-gray-700 text-white hover:bg-gray-600'
+                                }`}
+                            >
+                                <Flashlight size={48} className="mx-auto mb-2" />
+                                <span className="text-2xl font-bold block">
+                                    {flashlightOn ? 'ALLUMÉE' : 'Allumer'}
+                                </span>
+                            </button>
+                        </div>
+
+                        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+                            <h2 className="text-xl font-semibold text-center mb-4">Minuteur Cuisine</h2>
+                            
+                            <div className="text-center mb-6">
+                                <div className="text-4xl font-bold text-gray-800 mb-4">
+                                    {String(timerMinutes).padStart(2, '0')}:{String(timerSeconds).padStart(2, '0')}
+                                </div>
+                                
+                                {!isTimerRunning && (
+                                    <div className="flex justify-center gap-4 mb-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
+                                            <input
+                                                type="number"
+                                                value={timerMinutes}
+                                                onChange={(e) => setTimerMinutes(Math.max(0, parseInt(e.target.value) || 0))}
+                                                className="w-20 p-2 border border-gray-300 rounded text-center text-xl"
+                                                min="0"
+                                                max="99"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">Secondes</label>
+                                            <input
+                                                type="number"
+                                                value={timerSeconds}
+                                                onChange={(e) => setTimerSeconds(Math.max(0, Math.min(59, parseInt(e.target.value) || 0)))}
+                                                className="w-20 p-2 border border-gray-300 rounded text-center text-xl"
+                                                min="0"
+                                                max="59"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                <div className="flex gap-4 justify-center mb-4">
+                                    {!isTimerRunning ? (
+                                        <button
+                                            onClick={startTimer}
+                                            disabled={timerMinutes === 0 && timerSeconds === 0}
+                                            className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white px-8 py-4 rounded-lg text-lg font-semibold"
+                                        >
+                                            Démarrer
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={stopTimer}
+                                            className="bg-red-500 hover:bg-red-600 text-white px-8 py-4 rounded-lg text-lg font-semibold"
+                                        >
+                                            Arrêter
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                {!isTimerRunning && (
+                                    <div className="flex flex-wrap gap-2 justify-center">
+                                        <button
+                                            onClick={() => { setTimerMinutes(5); setTimerSeconds(0); }}
+                                            className="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-800 font-medium"
+                                        >
+                                            5 min
+                                        </button>
+                                        <button
+                                            onClick={() => { setTimerMinutes(10); setTimerSeconds(0); }}
+                                            className="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-800 font-medium"
+                                        >
+                                            10 min
+                                        </button>
+                                        <button
+                                            onClick={() => { setTimerMinutes(15); setTimerSeconds(0); }}
+                                            className="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-800 font-medium"
+                                        >
+                                            15 min
+                                        </button>
+                                        <button
+                                            onClick={() => { setTimerMinutes(30); setTimerSeconds(0); }}
+                                            className="bg-blue-100 hover:bg-blue-200 px-4 py-2 rounded-lg text-blue-800 font-medium"
+                                        >
+                                            30 min
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const ShoppingListScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <button
+                        onClick={() => setCurrentScreen('home')}
+                        className="mb-6 text-blue-600 text-lg font-semibold"
+                    >
+                        ← Retour
+                    </button>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center">Liste de Courses</h1>
+                    
+                    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm mb-6">
+                        <h2 className="text-lg font-semibold text-center mb-4">Ajouter un article</h2>
+                        
+                        <button
+                            onClick={startVoiceRecognition}
+                            disabled={isListening}
+                            className={`w-full p-6 rounded-2xl mb-4 transition-all duration-300 ${
+                                isListening 
+                                    ? 'bg-red-500 text-white animate-pulse' 
+                                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                            }`}
+                        >
+                            {isListening ? (
+                                <>
+                                    <MicOff size={48} className="mx-auto mb-2" />
+                                    <span className="text-xl font-bold block">J'écoute...</span>
+                                    <span className="text-sm block">Dites le nom de l'article</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Mic size={48} className="mx-auto mb-2" />
+                                    <span className="text-xl font-bold block">Parler pour ajouter</span>
+                                    <span className="text-sm block">Appuyez et parlez</span>
+                                </>
+                            )}
+                        </button>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={newItem}
+                                onChange={(e) => setNewItem(e.target.value)}
+                                placeholder="Ou tapez ici..."
+                                className="flex-1 p-3 border border-gray-300 rounded-lg text-lg"
+                                onKeyPress={(e) => {
+                                    if (e.key === 'Enter' && newItem.trim()) {
+                                        addToShoppingList(newItem);
+                                        setNewItem('');
+                                    }
+                                }}
+                            />
+                            <button
+                                onClick={() => {
+                                    addToShoppingList(newItem);
+                                    setNewItem('');
+                                }}
+                                disabled={!newItem.trim()}
+                                className="bg-green-500 hover:bg-green-600 disabled:bg-gray-300 text-white px-6 py-3 rounded-lg font-semibold"
+                            >
+                                Ajouter
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        {shoppingList.map((item) => (
+                            <div
+                                key={item.id}
+                                className={`bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-center justify-between ${
+                                    item.completed ? 'opacity-60' : ''
+                                }`}
+                            >
+                                <div className="flex items-center flex-1">
+                                    <button
+                                        onClick={() => toggleItemCompleted(item.id)}
+                                        className={`w-8 h-8 rounded-full border-2 mr-4 flex items-center justify-center ${
+                                            item.completed 
+                                                ? 'bg-green-500 border-green-500 text-white' 
+                                                : 'border-gray-300 hover:border-green-400'
+                                        }`}
+                                    >
+                                        {item.completed && '✓'}
+                                    </button>
+                                    <span className={`text-lg font-medium ${
+                                        item.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                                    }`}>
+                                        {item.item}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => removeItem(item.id)}
+                                    className="text-red-500 hover:text-red-700 p-2"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {shoppingList.length === 0 && (
+                        <div className="text-center py-8">
+                            <ShoppingCart size={64} className="mx-auto text-gray-300 mb-4" />
+                            <p className="text-gray-500 text-lg">Votre liste est vide</p>
+                            <p className="text-gray-400">Utilisez le bouton vocal pour ajouter des articles</p>
+                        </div>
+                    )}
+                </div>
+            );
+
+            const EmergencyScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <button
+                        onClick={() => setCurrentScreen('home')}
+                        className="mb-6 text-blue-600 text-lg font-semibold"
+                    >
+                        ← Retour
+                    </button>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center text-red-600">Contacts d'Urgence</h1>
+                    
+                    <div className="space-y-4">
+                        {emergencyContacts.map((contact) => (
+                            <button
+                                key={contact.id}
+                                onClick={() => callNumber(contact.phone)}
+                                className={`w-full ${contact.color} hover:opacity-90 text-white p-6 rounded-lg`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="text-left">
+                                        <h3 className="text-2xl font-bold">{contact.name}</h3>
+                                        <p className="text-xl">{contact.phone}</p>
+                                    </div>
+                                    <Phone size={36} />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="mt-8 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                        <p className="text-yellow-800 text-center font-medium">
+                            Appuyez sur un bouton pour appeler immédiatement
+                        </p>
+                    </div>
+                </div>
+            );
+
+            // Navigation des écrans
+            const screens = {
+                home: <HomeScreen />,
+                weather: <WeatherScreen />,
+                appointments: <AppointmentsScreen />,
+                contacts: <ContactsScreen />,
+                emergency: <EmergencyScreen />,
+                tools: <ToolsScreen />,
+                shopping: <ShoppingListScreen />
+            };
+
+            return (
+                <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+                    {screens[currentScreen]}
+                    
+                    {/* Formulaires modaux */}
+                    {showAddContact && (
+                        <ContactForm
+                            onSave={addContact}
+                            onCancel={() => setShowAddContact(false)}
+                        />
+                    )}
+                    
+                    {editingContact && (
+                        <ContactForm
+                            contact={editingContact}
+                            onSave={(contact) => updateContact(editingContact.id, contact)}
+                            onCancel={() => setEditingContact(null)}
+                        />
+                    )}
+                    
+                    {showAddAppointment && (
+                        <AppointmentForm
+                            onSave={addAppointment}
+                            onCancel={() => setShowAddAppointment(false)}
+                        />
+                    )}
+                    
+                    {editingAppointment && (
+                        <AppointmentForm
+                            appointment={editingAppointment}
+                            onSave={(appointment) => updateAppointment(editingAppointment.id, appointment)}
+                            onCancel={() => setEditingAppointment(null)}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<SeniorHelperApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
