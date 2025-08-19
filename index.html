@@ -569,4 +569,212 @@
                                         {item.completed && '✓'}
                                     </button>
                                     <span className={`text-lg font-medium ${
-                                        item.completed ? 'line-through text-gray-500' :
+                                        item.completed ? 'line-through text-gray-500' : 'text-gray-800'
+                                    }`}>
+                                        {item.item}
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShoppingList(shoppingList.filter(i => i.id !== item.id));
+                                    }}
+                                    className="text-red-500 hover:text-red-700 p-2"
+                                >
+                                    <Trash2 size={20} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+
+            const EmergencyScreen = () => (
+                <div className="p-6 min-h-screen bg-gray-50">
+                    <button
+                        onClick={() => setCurrentScreen('home')}
+                        className="mb-6 text-blue-600 text-lg font-semibold"
+                    >
+                        ← Retour
+                    </button>
+                    
+                    <h1 className="text-2xl font-bold mb-6 text-center text-red-600">Contacts d'Urgence</h1>
+                    
+                    <div className="space-y-4">
+                        {emergencyContacts.map((contact) => (
+                            <button
+                                key={contact.id}
+                                onClick={() => callNumber(contact.phone)}
+                                className={`w-full ${contact.color} hover:opacity-90 text-white p-6 rounded-lg`}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="text-left">
+                                        <h3 className="text-2xl font-bold">{contact.name}</h3>
+                                        <p className="text-xl">{contact.phone}</p>
+                                    </div>
+                                    <Phone size={36} />
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                    
+                    <div className="mt-8 bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                        <p className="text-yellow-800 text-center font-medium">
+                            Appuyez sur un bouton pour appeler immédiatement
+                        </p>
+                    </div>
+                </div>
+            );
+
+            const ContactForm = ({ onSave, onCancel }) => {
+                const [name, setName] = useState('');
+                const [phone, setPhone] = useState('');
+                const [type, setType] = useState('famille');
+
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                            <h2 className="text-xl font-bold mb-4">Nouveau Contact</h2>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="Nom"
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <input
+                                    type="tel"
+                                    value={phone}
+                                    onChange={(e) => setPhone(e.target.value)}
+                                    placeholder="Téléphone"
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                >
+                                    <option value="famille">Famille</option>
+                                    <option value="médecin">Médecin</option>
+                                    <option value="ami">Ami</option>
+                                </select>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            if (name.trim() && phone.trim()) {
+                                                onSave({ name, phone, type });
+                                            }
+                                        }}
+                                        className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Sauvegarder
+                                    </button>
+                                    <button
+                                        onClick={onCancel}
+                                        className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const AppointmentForm = ({ onSave, onCancel }) => {
+                const [date, setDate] = useState('');
+                const [time, setTime] = useState('');
+                const [doctor, setDoctor] = useState('');
+                const [type, setType] = useState('');
+
+                return (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                            <h2 className="text-xl font-bold mb-4">Nouveau Rendez-vous</h2>
+                            <div className="space-y-4">
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <input
+                                    type="time"
+                                    value={time}
+                                    onChange={(e) => setTime(e.target.value)}
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <input
+                                    type="text"
+                                    value={doctor}
+                                    onChange={(e) => setDoctor(e.target.value)}
+                                    placeholder="Médecin"
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <input
+                                    type="text"
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                    placeholder="Type de consultation"
+                                    className="w-full p-3 border border-gray-300 rounded-lg text-lg"
+                                />
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => {
+                                            if (date && time && doctor.trim() && type.trim()) {
+                                                onSave({ date, time, doctor, type });
+                                            }
+                                        }}
+                                        className="flex-1 bg-green-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Sauvegarder
+                                    </button>
+                                    <button
+                                        onClick={onCancel}
+                                        className="flex-1 bg-gray-500 text-white py-3 rounded-lg font-semibold"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            const screens = {
+                home: <HomeScreen />,
+                weather: <WeatherScreen />,
+                appointments: <AppointmentsScreen />,
+                contacts: <ContactsScreen />,
+                emergency: <EmergencyScreen />,
+                tools: <ToolsScreen />,
+                shopping: <ShoppingListScreen />
+            };
+
+            return (
+                <div className="max-w-md mx-auto bg-gray-50 min-h-screen">
+                    {screens[currentScreen]}
+                    
+                    {showAddContact && (
+                        <ContactForm
+                            onSave={addContact}
+                            onCancel={() => setShowAddContact(false)}
+                        />
+                    )}
+                    
+                    {showAddAppointment && (
+                        <AppointmentForm
+                            onSave={addAppointment}
+                            onCancel={() => setShowAddAppointment(false)}
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        ReactDOM.render(<SeniorHelperApp />, document.getElementById('root'));
+    </script>
+</body>
+</html>
